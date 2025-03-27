@@ -10,11 +10,10 @@ class TrackData:
     """
 
     def __init__(self, track_data_path:str) -> None:
-        """
-        Initialize the track data and the origin of the track.
+        """ Initialize the TrackData class.
 
         Args:
-            track_data_path (string): path of the racetrack data file.
+            track_data_path: the path of the track data file.
         """
 
         # Required fields
@@ -35,8 +34,11 @@ class TrackData:
         self.track_data = self._read_track_data(track_data_path)
 
     def plot_track_2D(self, ax:plt.figure, plot_kerbs:bool = False) -> None:
-        """
-        Plot the 2D representation of the track.
+        """ Plot the 2D representation of the track.
+
+        Args:
+            ax: the axis of the plot.
+            plot_kerbs: flag to plot the kerbs.
         """
 
         # Plot the mid line
@@ -59,8 +61,11 @@ class TrackData:
             self.plot_kerbs()
 
     def plot_track_3D(self, ax:plt.figure, plot_kerbs:bool = False) -> None:
-        """
-        Plot the 3D representation of the track.
+        """ Plot the 3D representation of the track.
+
+        Args:
+            ax: the axis of the plot.
+            plot_kerbs: flag to plot the kerbs.
         """
 
         # Plot the mid line
@@ -76,8 +81,10 @@ class TrackData:
             ax.plot(self.track_data['x_margin_kerb_R'], self.track_data['y_margin_kerb_R'], self.track_data['z_margin_kerb_R'], 'k-', linewidth=1, label='Track margin')
             
     def plot_kerbs(self, num_stripes:int = 1000) -> None:
-        """
-        Plot the kerbs of the track.
+        """ Plot the kerbs of the track.
+
+        Args:
+            num_stripes: number of stripes to plot the kerbs.
         """
 
         for i in range(num_stripes):
@@ -103,9 +110,13 @@ class TrackData:
     #  |_|   |_|  |_| \_/ \__,_|\__\___| |_| |_| |_|\___|\__|_| |_|\___/ \__,_|___/
                                                                                 
     def _check_track_field(self, track_data:pd.DataFrame) -> None:
-        """
-        Check if the track data contains the required fields otherwise rise
-        an error.
+        """ Check if the required fields are present in the track data.
+
+        Args:
+            track_data: racetrack data.
+
+        Raises:
+            ValueError: if the required fields are missing in the track data.
         """
 
         #  Read the track fields
@@ -120,19 +131,13 @@ class TrackData:
             raise ValueError(f"Required fields are missing in the track data: {', '.join(missing_fields)}")
 
     def _read_track_data(self, track_data_path:str) -> pd.DataFrame:
-        """
-        - Read racetrack data from a file and return it as a pandas DataFrame.
-        - Calculate cartesian coordinates of the margins.
-        - Read the origin of the track from the track data file.
-        Note: the separator is a tab (\t) and all the lones starting with #
-            are ignored.
+        """ Read the track data from the file.
 
         Args:
-            track_data_path (string): path of the racetrack data file.
+            track_data_path: path of the racetrack data file.
 
         Returns:
-            pandas DataFrame: racetrack data.
-            origin (tuple): latitude, longitude, altitude of the start/finish line.
+            pd.DataFrame: racetrack data.
         """
 
         # Read the track data, ignore the lines starting with #
@@ -159,16 +164,13 @@ class TrackData:
         return track_data
 
     def _track_margins_3D(self, track_data:pd.DataFrame) -> tuple:
-        """
-        Given the track data return the x,y,z coordiante of the track margins
-        and the kerbs margins.
+        """ Calculate the margins of the track in 3D.
 
         Args:
-            track_data (pandas DataFrame): racetrack data.
+            track_data: racetrack data.
 
         Returns:
-            x_margin_R, y_margin_R, z_margin_R, 
-            x_margin_L, y_margin_L, z_margin_L (np.array): track margins.
+            tuple: (x,y,z) coordinates of the margins of the track. Both with and without kerbs.
         """
 
         x_mid_line = track_data['x_mid_line']
@@ -193,14 +195,13 @@ class TrackData:
             x_margin_kerb_R, y_margin_kerb_R, z_margin_kerb_R, x_margin_kerb_L, y_margin_kerb_L, z_margin_kerb_L
 
     def _read_track_origin(self, track_data_path:str) -> tuple:
-        """
-        Read the origin of the track from the track data file.
+        """ Read the origin of the track.
 
         Args:
-            track_data_path (string): path of the racetrack data file.
+            track_data_path: path of the racetrack data file.
 
         Returns:
-            origin (tuple): latitude, longitude, altitude of the start/finish line.
+            tuple: (latitude, longitude, altitude) of the origin of the track.
         """
 
         with open(track_data_path, 'r') as file:
