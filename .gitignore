@@ -1,0 +1,9 @@
+# Ingore pycache
+__pycache__/
+
+# Ignore Mac system files
+**/.DS_Store
+
+# Example
+example/
+
