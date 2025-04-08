@@ -5,7 +5,7 @@ import numpy as np
 import re
 from dataclasses import dataclass
 
-from utils.conversion import darboux_to_cartesian
+from pytelemsys.utils.conversion import darboux_to_cartesian
 
 
 @dataclass

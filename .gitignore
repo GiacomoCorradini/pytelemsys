@@ -1,9 +1,14 @@
 # Ingore pycache
 __pycache__/
+*.egg-info
 
 # Ignore Mac system files
 **/.DS_Store
 
 # Example
 example/
+tests/
+
+# Ignore converter for now
+converter/
 
