@@ -3,10 +3,10 @@ import numpy as np
 
 from dataclasses import dataclass
 
+
 @dataclass
 class Telemetry:
-    """ Data class for storing telemetry data.
-    """
+    """Data class for storing telemetry data."""
 
     # Time/spatial data
     time: np.ndarray
@@ -26,7 +26,7 @@ class Telemetry:
     latitude: np.ndarray
     longitude: np.ndarray
     altitude: np.ndarray
-    
+
     # Linear accelerations
     ax: np.ndarray
     ay: np.ndarray
@@ -41,11 +41,12 @@ class Telemetry:
     V: np.ndarray
 
     def __init__(self, data: pd.DataFrame) -> None:
-        """ Initialize a Telemetry object.
+        """Initialize a Telemetry object.
 
         Args:
             data: DataFrame containing the telemetry data.
         """
+
 
 def read_telem_data(telem_data_path, origin):
     """
@@ -55,20 +56,26 @@ def read_telem_data(telem_data_path, origin):
           are ignored.
     """
 
-    telem_data = pd.read_csv(telem_data_path, sep=';', comment='#', decimal=',')
+    telem_data = pd.read_csv(telem_data_path, sep=";", comment="#", decimal=",")
 
     # Convert GPS data from hexadecimal to decimal base, with DD format
     latitude, longitude, elevation = convert_gps_data(telem_data)
-    telem_data['latitude'] = latitude
-    telem_data['longitude'] = longitude
-    telem_data['elevation'] = elevation
+    telem_data["latitude"] = latitude
+    telem_data["longitude"] = longitude
+    telem_data["elevation"] = elevation
 
     # Convert GPS data to ENU coordinates
-    xyz_coord = GPS2XYZ_ENU(telem_data['longitude'], telem_data['latitude'], telem_data['elevation'], origin[1], origin[0], origin[2])
+    xyz_coord = GPS2XYZ_ENU(
+        telem_data["longitude"],
+        telem_data["latitude"],
+        telem_data["elevation"],
+        origin[1],
+        origin[0],
+        origin[2],
+    )
 
-    telem_data['x'] = xyz_coord[:, 0]
-    telem_data['y'] = xyz_coord[:, 1]
-    telem_data['z'] = xyz_coord[:, 2]
+    telem_data["x"] = xyz_coord[:, 0]
+    telem_data["y"] = xyz_coord[:, 1]
+    telem_data["z"] = xyz_coord[:, 2]
 
     return telem_data
-

@@ -1,7 +1,16 @@
 import numpy as np
 
-def darboux_to_cartesian(x_ref:float, y_ref:float, z_ref:float, theta_ref:float, bank_ref:float, slope_ref:float, n:float) -> tuple[float, float, float]:
-    """ Convert from Darboux coordinates to Cartesian coordinates.
+
+def darboux_to_cartesian(
+    x_ref: float,
+    y_ref: float,
+    z_ref: float,
+    theta_ref: float,
+    bank_ref: float,
+    slope_ref: float,
+    n: float,
+) -> tuple[float, float, float]:
+    """Convert from Darboux coordinates to Cartesian coordinates.
 
     :param x_ref: x coordinate of the reference point.
     :param y_ref: y coordinate of the reference point.
@@ -13,8 +22,8 @@ def darboux_to_cartesian(x_ref:float, y_ref:float, z_ref:float, theta_ref:float,
     :return: x, y, z coordinates in Cartesian system.
     """
 
-    s_bank  = np.sin(bank_ref)
-    c_bank  = np.cos(bank_ref)
+    s_bank = np.sin(bank_ref)
+    c_bank = np.cos(bank_ref)
     s_slope = np.sin(slope_ref)
     c_slope = np.cos(slope_ref)
     s_theta = np.sin(theta_ref)
@@ -26,8 +35,14 @@ def darboux_to_cartesian(x_ref:float, y_ref:float, z_ref:float, theta_ref:float,
 
     return x, y, z
 
-def GPS2XYZ_ENU(longitude:np.ndarray, latitude:np.ndarray, altitude:np.ndarray, origin:tuple[float, float, float]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """ Convert GPS coordinates to ENU (East, North, Up) coordinates.
+
+def GPS2XYZ_ENU(
+    longitude: np.ndarray,
+    latitude: np.ndarray,
+    altitude: np.ndarray,
+    origin: tuple[float, float, float],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Convert GPS coordinates to ENU (East, North, Up) coordinates.
 
     :param longitude: longitude in degrees
     :param latitude: latitude in degrees
@@ -57,7 +72,7 @@ def GPS2XYZ_ENU(longitude:np.ndarray, latitude:np.ndarray, altitude:np.ndarray, 
     lon0 = np.radians(lon_0)
 
     # Radius of curvature in the prime vertical
-    N = a / np.sqrt(1 - e2 * np.sin(lat0)**2)
+    N = a / np.sqrt(1 - e2 * np.sin(lat0) ** 2)
 
     # Calculate normalized Cartesian coordinates
     norm_x = np.cos(lat) * np.cos(lon)
@@ -76,16 +91,12 @@ def GPS2XYZ_ENU(longitude:np.ndarray, latitude:np.ndarray, altitude:np.ndarray, 
 
     # East, North, Up unit vectors at origin in ECEF
     uvec_E0 = np.array([-np.sin(lon0), np.cos(lon0), 0])
-    uvec_N0 = np.array([
-        -np.cos(lon0) * np.sin(lat0),
-        -np.sin(lon0) * np.sin(lat0),
-        np.cos(lat0)
-    ])
-    uvec_U0 = np.array([
-        np.cos(lon0) * np.cos(lat0),
-        np.sin(lon0) * np.cos(lat0),
-        np.sin(lat0)
-    ])
+    uvec_N0 = np.array(
+        [-np.cos(lon0) * np.sin(lat0), -np.sin(lon0) * np.sin(lat0), np.cos(lat0)]
+    )
+    uvec_U0 = np.array(
+        [np.cos(lon0) * np.cos(lat0), np.sin(lon0) * np.cos(lat0), np.sin(lat0)]
+    )
 
     # Position vectors
     P = np.stack((PX, PY, PZ), axis=-1)
@@ -93,10 +104,8 @@ def GPS2XYZ_ENU(longitude:np.ndarray, latitude:np.ndarray, altitude:np.ndarray, 
 
     # Projection on tangent plane
     DP = P - origin
-    XYZ = np.stack((
-        np.dot(DP, uvec_E0),
-        np.dot(DP, uvec_N0),
-        np.dot(DP, uvec_U0)
-    ), axis=-1)
+    XYZ = np.stack(
+        (np.dot(DP, uvec_E0), np.dot(DP, uvec_N0), np.dot(DP, uvec_U0)), axis=-1
+    )
 
     return XYZ[:, 0], XYZ[:, 1], XYZ[:, 2]
