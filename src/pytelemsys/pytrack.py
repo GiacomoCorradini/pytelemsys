@@ -10,7 +10,24 @@ from pytelemsys.utils.conversion import darboux_to_cartesian
 
 @dataclass
 class Track:
-    """Data class for storing track data."""
+    """Data class for storing track data.
+
+    Attributes:
+        abscissa: Array of abscissa values representing the track's longitudinal position.
+        curvature: Array of curvature values along the track.
+        dir_mid_line: Array of direction values for the midline of the track.
+        x_mid_line: Array of x-coordinates for the midline of the track.
+        y_mid_line: Array of y-coordinates for the midline of the track.
+        elevation: Array of elevation values along the track. Defaults to zeros if not provided.
+        slope: Array of slope values along the track. Defaults to zeros if not provided.
+        banking: Array of banking values along the track. Defaults to zeros if not provided.
+        torsion: Array of torsion values along the track. Defaults to zeros if not provided.
+        upsilon: Array of upsilon values along the track. Defaults to zeros if not provided.
+        width_no_kerbs_L: Array of left-side track widths without kerbs.
+        width_no_kerbs_R: Array of right-side track widths without kerbs.
+        width_kerbs_L: Array of left-side track widths with kerbs. Defaults to `width_no_kerbs_L` if not provided.
+        width_kerbs_R: Array of right-side track widths with kerbs. Defaults to `width_no_kerbs_R` if not provided.
+    """
 
     abscissa: np.ndarray
     curvature: np.ndarray
@@ -314,7 +331,6 @@ class TrackData:
         with open(track_data_path, "r") as file:
             content = file.read()
 
-        # Use regular expressions to find the required values
         finish_line_latitude = re.search(
             r"#! FinishLineLatitude\s*=\s*([-\d.]+)", content
         )
@@ -325,6 +341,10 @@ class TrackData:
             r"#! FinishLineAltitude\s*=\s*([-\d.]+)", content
         )
 
+        origin_x0 = re.search(r"#! x0\s*=\s*([-\d.]+)", content)
+        origin_y0 = re.search(r"#! y0\s*=\s*([-\d.]+)", content)
+        origin_theta0 = re.search(r"#! theta0\s*=\s*([-\d.]+)", content)
+
         # Extract and convert the values if found
         if finish_line_latitude:
             finish_line_latitude = float(finish_line_latitude.group(1))
@@ -332,16 +352,39 @@ class TrackData:
             finish_line_longitude = float(finish_line_longitude.group(1))
         if finish_line_altitude:
             finish_line_altitude = float(finish_line_altitude.group(1))
+        if origin_x0:
+            origin_x0 = float(origin_x0.group(1))
+        if origin_y0:
+            origin_y0 = float(origin_y0.group(1))
+        if origin_theta0:
+            origin_theta0 = float(origin_theta0.group(1))
 
         # If the origin is not found, return a warning
-        if (finish_line_latitude, finish_line_longitude, finish_line_altitude) == (
+        if (
+            finish_line_latitude,
+            finish_line_longitude,
+            finish_line_altitude,
+            origin_x0,
+            origin_y0,
+            origin_theta0,
+        ) == (
+            None,
+            None,
+            None,
             None,
             None,
             None,
         ):
             print("Warning: origin of the track not found: ", self.track_data_path)
 
-        return finish_line_latitude, finish_line_longitude, finish_line_altitude
+        return (
+            finish_line_latitude,
+            finish_line_longitude,
+            finish_line_altitude,
+            origin_x0,
+            origin_y0,
+            origin_theta0,
+        )
 
     def _plot_kerbs_2D(self, ax: plt.figure, num_stripes: int = 1000) -> None:
         """Plot the kerbs of the track.
