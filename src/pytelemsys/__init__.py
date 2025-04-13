@@ -1,5 +1,5 @@
 from pytelemsys.pytrack import TrackData, Track
 
-# from .pytelem import TelemetryData
+# from pytelemsys.pytelem import TelemetryData, Telemetry
 
 from pytelemsys.utils import conversion, estimation, processing, utils
