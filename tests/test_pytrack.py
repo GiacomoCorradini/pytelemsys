@@ -1,8 +1,8 @@
-# %%
+# %% Setup
 import matplotlib.pyplot as plt
 import os
 
-from pytelemsys.pytrack import *
+from pytelemsys.pytrack import TrackData
 
 # Get root path
 root_path = os.path.abspath(os.path.join(__file__, "../"))
