@@ -1,81 +1,75 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import warnings
 
-from dataclasses import dataclass
+from pytelemsys.utils.processing import (
+    resample_data,
+    low_pass_filter,
+)
 
 
-@dataclass
-class Telemetry:
+class TelemetryData:
     """Data class for storing telemetry data."""
 
-    # Time/spatial data
-    time: np.ndarray
-    distance: np.ndarray
+    def __init__(
+        self,
+        telem_data_path: str,
+        separator: str = "\t",
+        comment: str = "#",
+        decimal: str = ".",
+        fun_conversion: callable = None,
+    ) -> None:
 
-    # Inputs
-    steering: np.ndarray
-    throttle: np.ndarray
-    brake: np.ndarray
+        # Read telemetry data from file
+        telem_data = pd.read_csv(
+            telem_data_path, sep=separator, comment=comment, decimal=decimal
+        )
 
-    # Cartesian coordinates
-    x: np.ndarray
-    y: np.ndarray
-    z: np.ndarray
+        # Raise a warning fi s & n are not in the data
+        if "n" not in telem_data or "s" not in telem_data:
+            warnings.warn("Missing curvilinear coordinates", UserWarning)
 
-    # GPS coordinates
-    latitude: np.ndarray
-    longitude: np.ndarray
-    altitude: np.ndarray
+    def resample(
+        self,
+        ref_column: str = "time",
+        freq: str = "100",
+    ) -> None:
+        """Resample the data."""
 
-    # Linear accelerations
-    ax: np.ndarray
-    ay: np.ndarray
-    az: np.ndarray
+        return resample_data(self.data, ref_column=ref_column, freq=freq)
 
-    # Angular velocities
-    roll_rate: np.ndarray
-    pitch_rate: np.ndarray
-    yaw_rate: np.ndarray
+    def compute_curvilinear_coordinates(self):
+        pass
 
-    # Velocity
-    V: np.ndarray
+    #   ____  _       _      __                  _   _
+    #  |  _ \| | ___ | |_   / _|_   _ _ __   ___| |_(_) ___  _ __
+    #  | |_) | |/ _ \| __| | |_| | | | '_ \ / __| __| |/ _ \| '_ \
+    #  |  __/| | (_) | |_  |  _| |_| | | | | (__| |_| | (_) | | | |
+    #  |_|   |_|\___/ \__| |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|
 
-    def __init__(self, data: pd.DataFrame) -> None:
-        """Initialize a Telemetry object.
+    def plot_trajectory(self, ax: plt.figure) -> None:
+        ax.plot(self.data.x, self.data.y, "k-", linewidth=2, label="Trajectory")
 
-        Args:
-            data: DataFrame containing the telemetry data.
-        """
+    def plot_gg_diagram():
+        pass
 
+    def plot_inputs(self, flag_save: bool = False, save_path: str = "") -> None:
 
-def read_telem_data(telem_data_path, origin):
-    """
-    Read telemetry data from a file and return it as a pandas DataFrame.
-    convert GPS data from hexadecimal to decimal format.
-    Note: the separator is a semicolon (;) and all the lones starting with #
-          are ignored.
-    """
+        fig = plt.figure("Input comparison")
 
-    telem_data = pd.read_csv(telem_data_path, sep=";", comment="#", decimal=",")
+        ax = fig.add_subplot(211)
+        plt.plot(self.data.s, self.data.throttle, "k-")
+        ax.set_title("Throttle")
+        ax.set_xticklabels([])
 
-    # Convert GPS data from hexadecimal to decimal base, with DD format
-    latitude, longitude, elevation = convert_gps_data(telem_data)
-    telem_data["latitude"] = latitude
-    telem_data["longitude"] = longitude
-    telem_data["elevation"] = elevation
+        ax = fig.add_subplot(212)
+        plt.plot(self.data.s, self.data.brake, "k-")
+        ax.set_title("Brake")
+        plt.xlabel("s [m]")
 
-    # Convert GPS data to ENU coordinates
-    xyz_coord = GPS2XYZ_ENU(
-        telem_data["longitude"],
-        telem_data["latitude"],
-        telem_data["elevation"],
-        origin[1],
-        origin[0],
-        origin[2],
-    )
+        if flag_save:
+            fig.savefig(save_path, dpi=300)
 
-    telem_data["x"] = xyz_coord[:, 0]
-    telem_data["y"] = xyz_coord[:, 1]
-    telem_data["z"] = xyz_coord[:, 2]
-
-    return telem_data
+    def plot_smart():
+        pass
