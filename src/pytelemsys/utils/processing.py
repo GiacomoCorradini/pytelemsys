@@ -10,18 +10,31 @@ from scipy.signal import butter, filtfilt
 #                                 |_|              |___/
 
 
-def resample_data(df_data_origin: pd.DataFrame, ts: str = "1") -> pd.DataFrame:
+def resample_data(
+    df_data_origin: pd.DataFrame, ref_column: str = "time", freq: float = 1.0
+) -> pd.DataFrame:
     """
-    Resample the data.
+    Resample the data based on the given frequency.
+
+    Args:
+        df_data_origin: Original DataFrame to be resampled.
+        ref_column: Column to be used as the reference for time. Default is "time".
+        freq: Resampling frequency in Hz. Default is 1.0 Hz.
+
+    Returns:
+        pd.DataFrame: Resampled DataFrame.
     """
 
     df_data = df_data_origin.copy()
 
-    df_data["time"] = pd.to_timedelta(df_data["time"], unit="s")
-    df_data.set_index("time", inplace=True)
-    df_data_resampled = df_data.resample(ts + "ms").mean().interpolate(method="linear")
+    # Convert frequency to sampling time in milliseconds
+    ts = 1.0 / freq
+
+    df_data[ref_column] = pd.to_timedelta(df_data[ref_column], unit="s")
+    df_data.set_index(ref_column, inplace=True)
+    df_data_resampled = df_data.resample(f"{ts}s").mean().interpolate(method="linear")
     df_data_resampled = df_data_resampled.reset_index()
-    df_data_resampled["time"] = df_data_resampled["time"].dt.total_seconds()
+    df_data_resampled[ref_column] = df_data_resampled[ref_column].dt.total_seconds()
 
     return df_data_resampled
 
