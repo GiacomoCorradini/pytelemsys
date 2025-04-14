@@ -8,6 +8,3 @@ __pycache__/
 # Example
 tests/racetracks/
 tests/telemetry/
-
-# Ignore converter for now
-converter/
