@@ -5,10 +5,7 @@ from typing import Callable, Optional
 
 from pytelemsys.pytrack import TrackData
 
-from pytelemsys.utils.processing import (
-    resample_data,
-    low_pass_filter,
-)
+from pytelemsys.utils import resample_data, low_pass_filter, darboux_to_cartesian
 
 
 class TelemetryData:
@@ -55,3 +52,28 @@ class TelemetryData:
         """
         # Compute curvilinear coordinates
         pass
+
+    def compute_vehicle_borders(
+        x: np.ndarray,
+        y: np.ndarray,
+        z: np.ndarray,
+        theta: np.ndarray,
+        banking: np.ndarray,
+        slope: np.ndarray,
+        VehHalf: float,
+    ) -> list:
+        """Compute vehicle borders in 3D space.
+        :param x: x coordinates of the vehicle.
+        :param y: y coordinates of the vehicle.
+        :param z: z coordinates of the vehicle.
+        :param theta: angle of the vehicle.
+        :param banking: banking angle of the vehicle.
+        :param slope: slope angle of the vehicle.
+        :param VehHalf: half of the vehicle width.
+        :return: x, y, z coordinates of the vehicle borders.
+        """
+
+        x_R, y_R, z_R = darboux_to_cartesian(x, y, z, theta, banking, slope, -VehHalf)
+        x_L, y_L, z_L = darboux_to_cartesian(x, y, z, theta, banking, slope, VehHalf)
+
+        return x_R, y_R, z_R, x_L, y_L, z_L
