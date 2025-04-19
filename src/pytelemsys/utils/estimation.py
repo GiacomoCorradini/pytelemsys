@@ -16,9 +16,6 @@ def estimate_theta(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     # Angle formula
     theta = np.arctan2(dy, dx)
 
-    # Append the last value to have the same size
-    theta = np.append(theta, theta[-1])
-
     return theta
 
 

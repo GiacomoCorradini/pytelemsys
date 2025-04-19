@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import warnings
 from typing import Callable, Optional
 
@@ -46,5 +45,13 @@ class TelemetryData:
 
         return resample_data(self.data, ref_column=ref_column, freq=freq)
 
-    def compute_curvilinear_coordinates(self, track_data: TrackData):
+    def compute_curvilinear_coordinates(
+        self, track_data: TrackData, xTrj: np.ndarray, yTrj: np.ndarray
+    ) -> None:
+        """Compute curvilinear coordinates
+        :param track_data: TrackData object
+        :param xTrj: X trajectory
+        :param yTrj: Y trajectory
+        """
+        # Compute curvilinear coordinates
         pass
