@@ -21,3 +21,6 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
 track_data.plot_track_3D(ax, plot_kerbs=True)
 ax.axis("equal")
+
+# %% Show the figure
+plt.show()
