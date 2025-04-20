@@ -1,6 +1,7 @@
-from pytelemsys.pytrack import TrackData, Track
+from pytelemsys.utils.track import Track
+from pytelemsys.pytrack import TrackData
 
-# from pytelemsys.pytelem import TelemetryData, Telemetry
+from pytelemsys.pytelem import TelemetryData
 
 from pytelemsys.utils import conversion, estimation, processing, utils
-from pytelemsys.converter import mlt_gp2_converter
+from pytelemsys.converter import mlt_gp2_converter, gp2_converter

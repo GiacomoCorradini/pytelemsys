@@ -1,3 +1,6 @@
+# Ignore vscode files
+.vscode/
+
 # Ingore pycache
 __pycache__/
 *.egg-info
@@ -8,3 +11,6 @@ __pycache__/
 # Example
 tests/racetracks/
 tests/telemetry/
+
+# Ignore third-party libraries
+third_party/
