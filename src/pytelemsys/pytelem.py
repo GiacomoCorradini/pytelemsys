@@ -3,9 +3,14 @@ import numpy as np
 import warnings
 from typing import Callable, Optional
 
-from pytelemsys.pytrack import TrackData
+from pytelemsys.utils.track import Track
 
-from pytelemsys.utils import resample_data, low_pass_filter, darboux_to_cartesian
+from pytelemsys.utils import (
+    resample_data,
+    low_pass_filter,
+    darboux_to_cartesian,
+    compute_curvilinear_coordinates,
+)
 
 
 class TelemetryData:
@@ -29,7 +34,7 @@ class TelemetryData:
         if fun_conversion is not None:
             self.data = fun_conversion(self.data)
 
-        # Raise a warning fi s & n are not in the data
+        # Raise a warning if s & n are not in the data
         if "n" not in self.data or "s" not in self.data:
             warnings.warn("Missing curvilinear coordinates", UserWarning)
 
@@ -42,38 +47,51 @@ class TelemetryData:
 
         return resample_data(self.data, ref_column=ref_column, freq=freq)
 
-    def compute_curvilinear_coordinates(
-        self, track_data: TrackData, xTrj: np.ndarray, yTrj: np.ndarray
+    def compute_curvilinear(
+        self, track_data: Track, xTrj: np.ndarray, yTrj: np.ndarray
     ) -> None:
         """Compute curvilinear coordinates
-        :param track_data: TrackData object
+        :param track_data: Track object
         :param xTrj: X trajectory
         :param yTrj: Y trajectory
         """
-        # Compute curvilinear coordinates
-        pass
+        # Validate input lengths
+        if len(xTrj) != len(yTrj):
+            raise ValueError("xTrj and yTrj must have the same length.")
+
+        # Compute and add curvilinear coordinates to the data
+        self.data["s"], self.data["n"] = compute_curvilinear_coordinates(
+            track_data, xTrj, yTrj
+        )
 
     def compute_vehicle_borders(
+        self,
         x: np.ndarray,
         y: np.ndarray,
-        z: np.ndarray,
         theta: np.ndarray,
-        banking: np.ndarray,
-        slope: np.ndarray,
         VehHalf: float,
-    ) -> list:
+        z: np.ndarray = None,
+        banking: np.ndarray = None,
+        slope: np.ndarray = None,
+    ) -> None:
         """Compute vehicle borders in 3D space.
         :param x: x coordinates of the vehicle.
         :param y: y coordinates of the vehicle.
-        :param z: z coordinates of the vehicle.
         :param theta: angle of the vehicle.
-        :param banking: banking angle of the vehicle.
-        :param slope: slope angle of the vehicle.
         :param VehHalf: half of the vehicle width.
-        :return: x, y, z coordinates of the vehicle borders.
+        :param z: z coordinates of the vehicle (default: zeros).
+        :param banking: banking angle of the vehicle (default: zeros).
+        :param slope: slope angle of the vehicle (default: zeros).
         """
 
-        x_R, y_R, z_R = darboux_to_cartesian(x, y, z, theta, banking, slope, -VehHalf)
-        x_L, y_L, z_L = darboux_to_cartesian(x, y, z, theta, banking, slope, VehHalf)
+        # Ensure z, banking, and slope have the same size as x using default values
+        z = np.zeros_like(x) if z is None else z
+        banking = np.zeros_like(x) if banking is None else banking
+        slope = np.zeros_like(x) if slope is None else slope
 
-        return x_R, y_R, z_R, x_L, y_L, z_L
+        self.data["x_R"], self.data["y_R"], self.data["z_R"] = darboux_to_cartesian(
+            x, y, z, theta, banking, slope, -VehHalf
+        )
+        self.data["x_L"], self.data["y_L"], self.data["z_L"] = darboux_to_cartesian(
+            x, y, z, theta, banking, slope, VehHalf
+        )

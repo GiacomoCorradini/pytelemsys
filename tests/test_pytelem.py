@@ -2,9 +2,11 @@
 import matplotlib.pyplot as plt
 import os
 
-from pytelemsys.pytelem import TelemetryData
+from pytelemsys import TelemetryData
+from pytelemsys import TrackData
+
 from pytelemsys.converter import mlt_gp2_converter, gp2_converter
-from pytelemsys.utils.conversion import GPS2XYZ_ENU
+from pytelemsys.utils import GPS2XYZ_ENU, compute_curvilinear_coordinates
 
 # Get root path
 root_path = os.path.abspath(os.path.join(__file__, "../"))
@@ -26,6 +28,9 @@ gp2_telem_data = TelemetryData(
     fun_conversion=gp2_converter,
 )
 
+# %% Track data
+track_data = TrackData(os.path.join(root_path, "racetracks/Barcellona_Catalunya.txt"))
+
 # %% Convert the ENUs to Cartesian coordinates
 gp2_telem_data.data["x"], gp2_telem_data.data["y"], gp2_telem_data.data["z"] = (
     GPS2XYZ_ENU(
@@ -33,9 +38,9 @@ gp2_telem_data.data["x"], gp2_telem_data.data["y"], gp2_telem_data.data["z"] = (
         gp2_telem_data.data["lat"],
         gp2_telem_data.data["z"],
         origin=(
-            gp2_telem_data.data["lon"].iloc[0],
-            gp2_telem_data.data["lat"].iloc[0],
-            gp2_telem_data.data["z"].iloc[0],
+            track_data.origin[1],
+            track_data.origin[0],
+            track_data.origin[2],
         ),
     )
 )
@@ -102,4 +107,39 @@ ax.set_ylabel("Y [m]")
 ax.set_title("Trajectory")
 ax.legend()
 
+# %% Compute curvilinear coordinates
+
+gp2_telem_data.data["s"], gp2_telem_data.data["n"] = compute_curvilinear_coordinates(
+    track_data.track,
+    gp2_telem_data.data["x"],
+    gp2_telem_data.data["y"],
+)
+# %% Load curvilinear data
+
+gp2_telem_data_curvilinea = TelemetryData(
+    os.path.join(root_path, "telemetry/GP2_TELEM_Q_CURV.csv"),
+    separator=",",
+    comment="#",
+    decimal=".",
+    fun_conversion=None,
+)
+
+# %% Check velocity profile (should be the same)
+fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+ax.plot(
+    gp2_telem_data.data["s"],
+    gp2_telem_data.data["V"],
+    label="GP2",
+    color="blue",
+    alpha=0.5,
+)
+ax.plot(
+    gp2_telem_data_curvilinea.data["s"],
+    gp2_telem_data_curvilinea.data["speed"] * 3.6,
+    label="OCP",
+    color="red",
+    alpha=0.5,
+)
+
+# %%
 plt.show()

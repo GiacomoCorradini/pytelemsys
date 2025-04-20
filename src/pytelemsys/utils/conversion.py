@@ -121,6 +121,10 @@ def compute_curvilinear_coordinates(
     :param xTrj: X trajectory
     :param yTrj: Y trajectory
     """
+    # Check that xTrj and yTrj have the same length
+    if len(xTrj) != len(yTrj):
+        raise ValueError("xTrj and yTrj must have the same length")
+
     # Compute curvilinear coordinates
     clothoid_track = Clothoids.ClothoidList()
 
