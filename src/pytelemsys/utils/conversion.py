@@ -1,4 +1,6 @@
 import numpy as np
+import Clothoids
+from pytelemsys.utils.track import Track
 
 
 def darboux_to_cartesian(
@@ -109,3 +111,27 @@ def GPS2XYZ_ENU(
     )
 
     return XYZ[:, 0], XYZ[:, 1], XYZ[:, 2]
+
+
+def compute_curvilinear_coordinates(
+    track_data: Track, xTrj: np.ndarray, yTrj: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """Compute curvilinear coordinates
+    :param track_data: Track object
+    :param xTrj: X trajectory
+    :param yTrj: Y trajectory
+    """
+    # Compute curvilinear coordinates
+    clothoid_track = Clothoids.ClothoidList()
+
+    clothoid_track.build(
+        x0=track_data.x_mid_line[0],
+        y0=track_data.y_mid_line[0],
+        theta0=track_data.dir_mid_line[0],
+        s=track_data.abscissa,
+        kappa=track_data.curvature,
+    )
+
+    s, n = zip(*(clothoid_track.findST1(x, y) for x, y in zip(xTrj, yTrj)))
+
+    return np.array(s), np.array(n)

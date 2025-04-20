@@ -30,8 +30,9 @@ def resample_data(
     # Convert frequency to sampling time in milliseconds
     ts = 1.0 / freq
 
-    df_data[ref_column] = pd.to_timedelta(df_data[ref_column], unit="s")
-    df_data.set_index(ref_column, inplace=True)
+    if not df_data.index.name == ref_column:
+        df_data[ref_column] = pd.to_timedelta(df_data[ref_column], unit="s")
+        df_data.set_index(ref_column, inplace=True)
     df_data_resampled = df_data.resample(f"{ts}s").mean().interpolate(method="linear")
     df_data_resampled = df_data_resampled.reset_index()
     df_data_resampled[ref_column] = df_data_resampled[ref_column].dt.total_seconds()
