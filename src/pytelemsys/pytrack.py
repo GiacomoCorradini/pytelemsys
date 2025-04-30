@@ -29,7 +29,7 @@ class TrackData:
         # Read the track data
         self.track = self._read_track_data(track_data_path)
 
-    def plot_track_2D(self, ax: plt.figure, plot_kerbs: bool = False) -> None:
+    def plot_track_2D(self, ax: plt.Axes, plot_kerbs: bool = False) -> None:
         """Plot the 2D representation of the track.
 
         Args:
