@@ -10,7 +10,7 @@ authors = [{ name = "Giacomo Corradini", email = "giacomo.corradini@unitn.it" }]
 readme = "README.md"
 requires-python = ">=3.10"
 
-dependencies = ["numpy", "pandas", "matplotlib", "scipy", "mplcursors"]
+dependencies = ["numpy", "pandas", "matplotlib", "scipy", "mplcursors", "Clothoids"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
