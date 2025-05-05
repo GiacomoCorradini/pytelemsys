@@ -75,6 +75,16 @@ class TelemetryData:
         if "n" not in self.data or "s" not in self.data:
             warnings.warn("Missing curvilinear coordinates", UserWarning)
 
+    def assign_telem_data(
+        self,
+        data: pd.DataFrame,
+    ) -> None:
+        """Assign telemetry data to the object.
+
+        :param data: DataFrame containing telemetry data.
+        """
+        self.data = data
+
     def resample(
         self,
         ref_column: str = "time",
