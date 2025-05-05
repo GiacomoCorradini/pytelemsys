@@ -5,5 +5,5 @@ from pytelemsys.utils.conversion import (
     GPS2XYZ_ENU,
     compute_curvilinear_coordinates,
 )
-from pytelemsys.utils.utils import mplcursors
+from pytelemsys.utils.utils import cursor_hover
 from pytelemsys.utils.track import Track
