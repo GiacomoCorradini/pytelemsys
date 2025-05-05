@@ -18,13 +18,50 @@ class TelemetryData:
 
     def __init__(
         self,
-        telem_data_path: str,
+        telem_data_path: str = None,
         separator: str = "\t",
         comment: str = "#",
         decimal: str = ".",
         fun_conversion: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     ) -> None:
+        """Constructor for TelemetryData class.
 
+        :param telem_data_path: Path to the telemetry data file.
+        :param separator: Separator used in the telemetry data file, defaults to "\t".
+        :param comment: Comment character in the telemetry data file, defaults to "#".
+        :param decimal: Decimal character in the telemetry data file, defaults to ".".
+        :param fun_conversion: Function to convert the data.
+        """
+
+        if telem_data_path is not None:
+            self.laod_telem_data(
+                telem_data_path,
+                separator=separator,
+                comment=comment,
+                decimal=decimal,
+                fun_conversion=fun_conversion,
+            )
+
+        else:
+            warnings.warn("No telemetry data path provided.", UserWarning)
+            self.data = None
+
+    def laod_telem_data(
+        self,
+        telem_data_path: str = None,
+        separator: str = "\t",
+        comment: str = "#",
+        decimal: str = ".",
+        fun_conversion: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
+    ) -> None:
+        """Load telemetry data from a file.
+
+        :param telem_data_path: Path to the telemetry data file.
+        :param separator: Separator used in the telemetry data file, defaults to "\t".
+        :param comment: Comment character in the telemetry data file, defaults to "#".
+        :param decimal: Decimal character in the telemetry data file, defaults to ".".
+        :param fun_conversion: Function to convert the data.
+        """
         # Read telemetry data from file
         self.data = pd.read_csv(
             telem_data_path, sep=separator, comment=comment, decimal=decimal
@@ -43,17 +80,23 @@ class TelemetryData:
         ref_column: str = "time",
         freq: float = 100,
     ) -> pd.DataFrame:
-        """Resample the data."""
+        """Resample the data.
+
+        :param ref_column: Reference column for resampling.
+        :param freq: Frequency for resampling.
+        :return: Resampled DataFrame.
+        """
 
         return resample_data(self.data, ref_column=ref_column, freq=freq)
 
     def compute_curvilinear(
         self, track_data: Track, xTrj: np.ndarray, yTrj: np.ndarray
     ) -> None:
-        """Compute curvilinear coordinates
-        :param track_data: Track object
-        :param xTrj: X trajectory
-        :param yTrj: Y trajectory
+        """Compute curvilinear coordinates.
+
+        :param track_data: Track object.
+        :param xTrj: X trajectory.
+        :param yTrj: Y trajectory.
         """
         # Validate input lengths
         if len(xTrj) != len(yTrj):
@@ -75,6 +118,7 @@ class TelemetryData:
         slope: np.ndarray = None,
     ) -> None:
         """Compute vehicle borders in 3D space.
+
         :param x: x coordinates of the vehicle.
         :param y: y coordinates of the vehicle.
         :param theta: angle of the vehicle.
