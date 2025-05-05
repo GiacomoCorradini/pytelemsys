@@ -5,8 +5,8 @@
 ## Features
 
 The package is organized into two main modules:
-- [**`pytelem`**](docs/pytelem_doc.md): Focused on telemetry data processing and analysis.
-- [**`pytrack`**](docs/pytrack_doc.md): Dedicated to handling and analyzing tracking data.
+- [**`pytelem`**](docs/pytelem/pytelem_doc.md): Focused on telemetry data processing and analysis.
+- [**`pytrack`**](docs/pytrack/pytrack_doc.md): Dedicated to handling and analyzing tracking data.
 
 ## Installation
 

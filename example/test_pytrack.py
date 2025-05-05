@@ -8,7 +8,7 @@ from pytelemsys.pytrack import TrackData
 root_path = os.path.abspath(os.path.join(__file__, "../"))
 
 # Initialize the TrackData object
-track_data = TrackData(os.path.join(root_path, "racetracks/Barcellona_Catalunya.txt"))
+track_data = TrackData(os.path.join(root_path, "racetracks/Silverstone_2D.txt"))
 
 # %% Plot track
 
