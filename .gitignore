@@ -9,7 +9,7 @@ __pycache__/
 **/.DS_Store
 
 # Example
-example/telemetry/
+example/test_pytelem_2.py
 
 # Ignore third-party libraries
 third_party/

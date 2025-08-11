@@ -149,3 +149,18 @@ class TelemetryData:
         self.data["x_L"], self.data["y_L"], self.data["z_L"] = darboux_to_cartesian(
             x, y, z, theta, banking, slope, VehHalf
         )
+
+    def save_data(
+        self,
+        file_path: str,
+        separator: str = "\t",
+        index: bool = False,
+    ) -> None:
+        """Save the telemetry data to a file.
+
+        :param file_path: Path to save the telemetry data.
+        :param separator: Separator for the saved file, defaults to "\t".
+        :param index: Whether to include the index in the saved file, defaults to False.
+        """
+        self.data.to_csv(file_path, sep=separator, index=index)
+        print(f"Telemetry data saved to {file_path}")
