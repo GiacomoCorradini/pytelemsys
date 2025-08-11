@@ -17,7 +17,7 @@ To install `pytelemsys`, follow these steps:
     git clone https://github.com/GiacomoCorradini/pytelemsys.git
     cd pytelemsys
     ```
-3. Install the package in editable mode:
+2. Install the package in editable mode:
     ```bash
     pip install -e .
     ```
