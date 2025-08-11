@@ -64,7 +64,7 @@ class TrackData:
         if plot_kerbs:
             self._plot_kerbs_2D(ax)
 
-    def plot_track_3D(self, ax: plt.figure, plot_kerbs: bool = False) -> None:
+    def plot_track_3D(self, ax: plt.Axes, plot_kerbs: bool = False) -> None:
         """Plot the 2D representation of the track.
 
         Args:
@@ -296,7 +296,7 @@ class TrackData:
             origin_theta0,
         )
 
-    def _plot_kerbs_2D(self, ax: plt.figure, num_stripes: int = 1000) -> None:
+    def _plot_kerbs_2D(self, ax: plt.Axes, num_stripes: int = 1000) -> None:
         """Plot the kerbs of the track.
 
         Args:
@@ -334,7 +334,7 @@ class TrackData:
                 alpha=0.8,
             )
 
-    def _plot_kerbs_3D(self, ax: plt.figure, num_stripes: int = 1000) -> None:
+    def _plot_kerbs_3D(self, ax: plt.Axes, num_stripes: int = 1000) -> None:
         """Plot the kerbs of the track.
 
         Args:
@@ -373,41 +373,19 @@ class TrackData:
             color = "red" if i % 2 == 0 else "white"
 
             # Left kerb
-            verts = [
-                list(
-                    zip(
-                        np.concatenate(
-                            [xL[idx_start:idx_end], xLk[idx_start:idx_end][::-1]]
-                        ),
-                        np.concatenate(
-                            [yL[idx_start:idx_end], yLk[idx_start:idx_end][::-1]]
-                        ),
-                        np.concatenate(
-                            [zL[idx_start:idx_end], zLk[idx_start:idx_end][::-1]]
-                        ),
-                    )
-                )
-            ]
-
-            road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
-            ax.add_collection3d(road_surface)
+            x_left = np.concatenate([xL[idx_start:idx_end], xLk[idx_start:idx_end][::-1]])
+            y_left = np.concatenate([yL[idx_start:idx_end], yLk[idx_start:idx_end][::-1]])
+            z_left = np.concatenate([zL[idx_start:idx_end], zLk[idx_start:idx_end][::-1]])
+            if len(x_left) > 0 and len(y_left) > 0 and len(z_left) > 0:
+                verts = [list(zip(x_left, y_left, z_left))]
+                road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
+                ax.add_collection3d(road_surface)
 
             # Right kerb
-            verts = [
-                list(
-                    zip(
-                        np.concatenate(
-                            [xR[idx_start:idx_end], xRk[idx_start:idx_end][::-1]]
-                        ),
-                        np.concatenate(
-                            [yR[idx_start:idx_end], yRk[idx_start:idx_end][::-1]]
-                        ),
-                        np.concatenate(
-                            [zR[idx_start:idx_end], zRk[idx_start:idx_end][::-1]]
-                        ),
-                    )
-                )
-            ]
-
-            road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
-            ax.add_collection3d(road_surface)
+            x_right = np.concatenate([xR[idx_start:idx_end], xRk[idx_start:idx_end][::-1]])
+            y_right = np.concatenate([yR[idx_start:idx_end], yRk[idx_start:idx_end][::-1]])
+            z_right = np.concatenate([zR[idx_start:idx_end], zRk[idx_start:idx_end][::-1]])
+            if len(x_right) > 0 and len(y_right) > 0 and len(z_right) > 0:
+                verts = [list(zip(x_right, y_right, z_right))]
+                road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
+                ax.add_collection3d(road_surface)
