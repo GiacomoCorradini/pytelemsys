@@ -21,3 +21,9 @@ To install `pytelemsys`, follow these steps:
     ```bash
     pip install -e .
     ```
+
+## Example Usage
+
+To get started with `pytelemsys`, you can refer to the example usage provided for each module:
+- For telemetry data, check out the [pytelem example](example/test_pytelem.py).
+- For tracking data, refer to the [pytrack example](example/test_pytrack.py).
