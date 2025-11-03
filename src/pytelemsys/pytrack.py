@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 import re
+import Clothoids
 
 from pytelemsys.utils.track import Track
 from pytelemsys.utils import darboux_to_cartesian
@@ -111,6 +112,26 @@ class TrackData:
         # Plot the kerbs
         if plot_kerbs:
             self._plot_kerbs_3D(ax)
+
+    def rebuild_track(
+        self,
+    ) -> Clothoids.ClothoidList:
+        """Compute curvilinear coordinates
+        :param track_data: Track object
+        """
+ 
+        # Compute curvilinear coordinates
+        clothoid_track = Clothoids.ClothoidList()
+
+        clothoid_track.build(
+            x0=self.track.x_mid_line[0],
+            y0=self.track.y_mid_line[0],
+            theta0=self.track.dir_mid_line[0],
+            s=self.track.abscissa,
+            kappa=self.track.curvature,
+        )
+
+        return clothoid_track
 
     #   ____       _            _                        _   _               _
     #  |  _ \ _ __(_)_   ____ _| |_ ___   _ __ ___   ___| |_| |__   ___   __| |___
