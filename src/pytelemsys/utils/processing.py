@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy.signal import butter, filtfilt
+from scipy.signal import butter, filtfilt, savgol_filter
 
 #   ____                                 _ _
 #  |  _ \ ___  ___  __ _ _ __ ___  _ __ | (_)_ __   __ _
@@ -91,5 +91,25 @@ def low_pass_filter(
 
     # Apply the filter using filtfilt
     filtered_data = filtfilt(b, a, data)
+
+    return filtered_data
+
+
+def savitzky_golay_filter(
+    data: np.ndarray, window_length: int = 20, polyorder: int = 3
+) -> np.ndarray:
+    """Apply a Savitzky-Golay filter to the data.
+
+    Args:
+        data: data to be filtered
+        window_length: length of the filter window (must be odd and greater than polyorder)
+        polyorder: order of the polynomial used to fit the samples
+    Returns:
+        np.ndarray: filtered data
+    """
+
+    filtered_data = savgol_filter(
+        data, window_length=window_length, polyorder=polyorder
+    )
 
     return filtered_data
