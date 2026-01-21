@@ -10,7 +10,17 @@ authors = [{ name = "Giacomo Corradini", email = "giacomo.corradini@unitn.it" }]
 readme = "README.md"
 requires-python = ">=3.10"
 
-dependencies = ["numpy", "pandas", "matplotlib", "scipy", "mplcursors", "Clothoids"]
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scipy",
+    "mplcursors",
+    "Clothoids",
+]
+
+[project.optional-dependencies]
+fastf1 = ["fastf1"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }

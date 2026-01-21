@@ -22,6 +22,11 @@ To install `pytelemsys`, follow these steps:
     pip install -e .
     ```
 
+3. (Optional) To use the FastF1 extension, install with the fastf1 extra:
+    ```bash
+    pip install -e ".[fastf1]"
+    ```
+
 ## Example Usage
 
 To get started with `pytelemsys`, you can refer to the example usage provided for each module:
