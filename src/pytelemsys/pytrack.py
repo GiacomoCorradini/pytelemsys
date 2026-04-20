@@ -119,7 +119,7 @@ class TrackData:
         """Compute curvilinear coordinates
         :param track_data: Track object
         """
- 
+
         # Compute curvilinear coordinates
         clothoid_track = Clothoids.ClothoidList()
 
@@ -185,7 +185,7 @@ class TrackData:
         z_mid_line = track_data.elevation
 
         theta_mid_line = track_data.dir_mid_line
-        bank_mid_line = track_data.banking
+        bank_mid_line = -track_data.banking
         slope_mid_line = track_data.slope
 
         width_R_no_kerbs = track_data.width_no_kerbs_R
@@ -394,18 +394,30 @@ class TrackData:
             color = "red" if i % 2 == 0 else "white"
 
             # Left kerb
-            x_left = np.concatenate([xL[idx_start:idx_end], xLk[idx_start:idx_end][::-1]])
-            y_left = np.concatenate([yL[idx_start:idx_end], yLk[idx_start:idx_end][::-1]])
-            z_left = np.concatenate([zL[idx_start:idx_end], zLk[idx_start:idx_end][::-1]])
+            x_left = np.concatenate(
+                [xL[idx_start:idx_end], xLk[idx_start:idx_end][::-1]]
+            )
+            y_left = np.concatenate(
+                [yL[idx_start:idx_end], yLk[idx_start:idx_end][::-1]]
+            )
+            z_left = np.concatenate(
+                [zL[idx_start:idx_end], zLk[idx_start:idx_end][::-1]]
+            )
             if len(x_left) > 0 and len(y_left) > 0 and len(z_left) > 0:
                 verts = [list(zip(x_left, y_left, z_left))]
                 road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
                 ax.add_collection3d(road_surface)
 
             # Right kerb
-            x_right = np.concatenate([xR[idx_start:idx_end], xRk[idx_start:idx_end][::-1]])
-            y_right = np.concatenate([yR[idx_start:idx_end], yRk[idx_start:idx_end][::-1]])
-            z_right = np.concatenate([zR[idx_start:idx_end], zRk[idx_start:idx_end][::-1]])
+            x_right = np.concatenate(
+                [xR[idx_start:idx_end], xRk[idx_start:idx_end][::-1]]
+            )
+            y_right = np.concatenate(
+                [yR[idx_start:idx_end], yRk[idx_start:idx_end][::-1]]
+            )
+            z_right = np.concatenate(
+                [zR[idx_start:idx_end], zRk[idx_start:idx_end][::-1]]
+            )
             if len(x_right) > 0 and len(y_right) > 0 and len(z_right) > 0:
                 verts = [list(zip(x_right, y_right, z_right))]
                 road_surface = Poly3DCollection(verts, color=color, alpha=0.8)
