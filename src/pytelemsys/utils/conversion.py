@@ -4,14 +4,14 @@ from pytelemsys.utils.track import Track
 
 
 def darboux_to_cartesian(
-    x_ref: float,
-    y_ref: float,
-    z_ref: float,
-    theta_ref: float,
-    bank_ref: float,
-    slope_ref: float,
-    n: float,
-) -> tuple[float, float, float]:
+    x_ref: float | np.ndarray,
+    y_ref: float | np.ndarray,
+    z_ref: float | np.ndarray,
+    theta_ref: float | np.ndarray,
+    bank_ref: float | np.ndarray,
+    slope_ref: float | np.ndarray,
+    n: float | np.ndarray,
+) -> tuple[float | np.ndarray, float | np.ndarray, float | np.ndarray]:
     """Convert from Darboux coordinates to Cartesian coordinates.
 
     :param x_ref: x coordinate of the reference point.
