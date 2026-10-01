@@ -7,34 +7,33 @@ from pytelemsys.utils.track import Track
 
 from pytelemsys.utils import (
     resample_data,
-    low_pass_filter,
     darboux_to_cartesian,
-    compute_curvilinear_coordinates,
+    cartesian_to_curvilinear,
 )
 
 
 class TelemetryData:
-    """Data class for storing telemetry data."""
+    """Telemetry data stored in a DataFrame."""
 
     def __init__(
         self,
-        telem_data_path: str = None,
+        telem_data_path: str | None = None,
         separator: str = "\t",
         comment: str = "#",
         decimal: str = ".",
         fun_conversion: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     ) -> None:
-        """Constructor for TelemetryData class.
+        """Load the telemetry data from a file, if given.
 
-        :param telem_data_path: Path to the telemetry data file.
-        :param separator: Separator used in the telemetry data file, defaults to "\t".
-        :param comment: Comment character in the telemetry data file, defaults to "#".
-        :param decimal: Decimal character in the telemetry data file, defaults to ".".
-        :param fun_conversion: Function to convert the data.
+        :param telem_data_path: path of the telemetry file.
+        :param separator: column separator, defaults to "\\t".
+        :param comment: comment character, defaults to "#".
+        :param decimal: decimal separator, defaults to ".".
+        :param fun_conversion: function applied to the loaded DataFrame.
         """
 
         if telem_data_path is not None:
-            self.laod_telem_data(
+            self.load_telem_data(
                 telem_data_path,
                 separator=separator,
                 comment=comment,
@@ -46,21 +45,21 @@ class TelemetryData:
             warnings.warn("No telemetry data path provided.", UserWarning)
             self.data = None
 
-    def laod_telem_data(
+    def load_telem_data(
         self,
-        telem_data_path: str = None,
+        telem_data_path: str | None = None,
         separator: str = "\t",
         comment: str = "#",
         decimal: str = ".",
         fun_conversion: Optional[Callable[[pd.DataFrame], pd.DataFrame]] = None,
     ) -> None:
-        """Load telemetry data from a file.
+        """Load the telemetry data from a file.
 
-        :param telem_data_path: Path to the telemetry data file.
-        :param separator: Separator used in the telemetry data file, defaults to "\t".
-        :param comment: Comment character in the telemetry data file, defaults to "#".
-        :param decimal: Decimal character in the telemetry data file, defaults to ".".
-        :param fun_conversion: Function to convert the data.
+        :param telem_data_path: path of the telemetry file.
+        :param separator: column separator, defaults to "\\t".
+        :param comment: comment character, defaults to "#".
+        :param decimal: decimal separator, defaults to ".".
+        :param fun_conversion: function applied to the loaded DataFrame.
         """
         # Read telemetry data from file
         self.data = pd.read_csv(
@@ -79,9 +78,9 @@ class TelemetryData:
         self,
         data: pd.DataFrame,
     ) -> None:
-        """Assign telemetry data to the object.
+        """Set the telemetry data.
 
-        :param data: DataFrame containing telemetry data.
+        :param data: telemetry DataFrame.
         """
         self.data = data
 
@@ -90,52 +89,50 @@ class TelemetryData:
         ref_column: str = "time",
         freq: float = 100,
     ) -> pd.DataFrame:
-        """Resample the data.
+        """Resample the data on a uniform time grid.
 
-        :param ref_column: Reference column for resampling.
-        :param freq: Frequency for resampling.
-        :return: Resampled DataFrame.
+        :param ref_column: column with the time in s, defaults to "time".
+        :param freq: resampling frequency in Hz, defaults to 100.
+        :return: resampled DataFrame.
         """
 
         return resample_data(self.data, ref_column=ref_column, freq=freq)
 
     def compute_curvilinear(
-        self, track_data: Track, xTrj: np.ndarray, yTrj: np.ndarray
+        self, track_data: Track, x: np.ndarray, y: np.ndarray
     ) -> None:
-        """Compute curvilinear coordinates.
+        """Add the curvilinear coordinates s and n to the data.
 
-        :param track_data: Track object.
-        :param xTrj: X trajectory.
-        :param yTrj: Y trajectory.
+        :param track_data: track data.
+        :param x: x coordinates of the trajectory.
+        :param y: y coordinates of the trajectory.
         """
         # Validate input lengths
-        if len(xTrj) != len(yTrj):
-            raise ValueError("xTrj and yTrj must have the same length.")
+        if len(x) != len(y):
+            raise ValueError("x and y must have the same length.")
 
         # Compute and add curvilinear coordinates to the data
-        self.data["s"], self.data["n"] = compute_curvilinear_coordinates(
-            track_data, xTrj, yTrj
-        )
+        self.data["s"], self.data["n"] = cartesian_to_curvilinear(track_data, x, y)
 
     def compute_vehicle_borders(
         self,
         x: np.ndarray,
         y: np.ndarray,
         theta: np.ndarray,
-        VehHalf: float,
+        half_width: float,
         z: np.ndarray = None,
         banking: np.ndarray = None,
         slope: np.ndarray = None,
     ) -> None:
-        """Compute vehicle borders in 3D space.
+        """Add the left and right vehicle borders to the data.
 
         :param x: x coordinates of the vehicle.
         :param y: y coordinates of the vehicle.
-        :param theta: angle of the vehicle.
-        :param VehHalf: half of the vehicle width.
-        :param z: z coordinates of the vehicle (default: zeros).
-        :param banking: banking angle of the vehicle (default: zeros).
-        :param slope: slope angle of the vehicle (default: zeros).
+        :param theta: heading angle of the vehicle.
+        :param half_width: half width of the vehicle.
+        :param z: z coordinates of the vehicle, defaults to zeros.
+        :param banking: banking angle, defaults to zeros.
+        :param slope: slope angle, defaults to zeros.
         """
 
         # Ensure z, banking, and slope have the same size as x using default values
@@ -144,10 +141,10 @@ class TelemetryData:
         slope = np.zeros_like(x) if slope is None else slope
 
         self.data["x_R"], self.data["y_R"], self.data["z_R"] = darboux_to_cartesian(
-            x, y, z, theta, banking, slope, -VehHalf
+            x, y, z, theta, banking, slope, -half_width
         )
         self.data["x_L"], self.data["y_L"], self.data["z_L"] = darboux_to_cartesian(
-            x, y, z, theta, banking, slope, VehHalf
+            x, y, z, theta, banking, slope, half_width
         )
 
     def save_data(
@@ -158,9 +155,8 @@ class TelemetryData:
     ) -> None:
         """Save the telemetry data to a file.
 
-        :param file_path: Path to save the telemetry data.
-        :param separator: Separator for the saved file, defaults to "\t".
-        :param index: Whether to include the index in the saved file, defaults to False.
+        :param file_path: path of the output file.
+        :param separator: column separator, defaults to "\\t".
+        :param index: write the DataFrame index, defaults to False.
         """
         self.data.to_csv(file_path, sep=separator, index=index)
-        print(f"Telemetry data saved to {file_path}")

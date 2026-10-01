@@ -1,2 +1,0 @@
-from pytelemsys.converter.gp2_converter import gp2_converter
-from pytelemsys.converter.mlt_gp2_converter import mlt_gp2_converter

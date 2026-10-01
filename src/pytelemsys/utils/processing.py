@@ -13,31 +13,31 @@ from scipy.signal import butter, filtfilt, savgol_filter
 def resample_data(
     df_data_origin: pd.DataFrame, ref_column: str = "time", freq: float = 1.0
 ) -> pd.DataFrame:
+    """Resample the data on a uniform time grid using linear interpolation.
+
+    Non-numeric columns are dropped. When downsampling, low-pass filter the
+    data first to avoid aliasing.
+
+    :param df_data_origin: DataFrame to be resampled.
+    :param ref_column: column with the time in s, defaults to "time".
+    :param freq: resampling frequency in Hz, defaults to 1.0.
+    :return: resampled DataFrame.
     """
-    Resample the data based on the given frequency.
 
-    Args:
-        df_data_origin: Original DataFrame to be resampled.
-        ref_column: Column to be used as the reference for time. Default is "time".
-        freq: Resampling frequency in Hz. Default is 1.0 Hz.
+    df_data = df_data_origin.select_dtypes("number")
+    time = df_data[ref_column].to_numpy()
 
-    Returns:
-        pd.DataFrame: Resampled DataFrame.
-    """
+    if np.any(np.diff(time) <= 0):
+        raise ValueError(f"'{ref_column}' must be strictly increasing")
 
-    df_data = df_data_origin.copy()
-
-    # Convert frequency to sampling time in milliseconds
+    # Uniform time grid starting at the first sample
     ts = 1.0 / freq
+    n_samples = int(np.floor((time[-1] - time[0]) / ts)) + 1
+    time_resampled = time[0] + np.arange(n_samples) * ts
 
-    if not df_data.index.name == ref_column:
-        df_data[ref_column] = pd.to_timedelta(df_data[ref_column], unit="s")
-        df_data.set_index(ref_column, inplace=True)
-    df_data_resampled = df_data.resample(f"{ts}s").mean().interpolate(method="linear")
-    df_data_resampled = df_data_resampled.reset_index()
-    df_data_resampled[ref_column] = df_data_resampled[ref_column].dt.total_seconds()
-
-    return df_data_resampled
+    return pd.DataFrame(
+        {col: np.interp(time_resampled, time, df_data[col]) for col in df_data}
+    )
 
 
 #   _____ _ _ _            _
@@ -49,32 +49,33 @@ def resample_data(
 
 
 def moving_average(data: list | np.ndarray, window_size: int) -> np.ndarray:
-    """calculate the moving average of a signal
+    """Compute the moving average of a signal.
 
-    Args:
-        data: data to be filtered
-        window_size: size of the window
-
-    Returns:
-        np.ndarray: filtered data
+    :param data: data to be filtered.
+    :param window_size: size of the window (odd, to avoid a half-sample shift).
+    :return: filtered data.
     """
 
-    return np.convolve(data, np.ones(window_size) / window_size, mode="same")
+    if window_size > len(data):
+        raise ValueError("window_size must not exceed the length of data")
+
+    # Divide by the number of samples in each window, so the edges are not attenuated
+    kernel = np.ones(window_size)
+    return np.convolve(data, kernel, mode="same") / np.convolve(
+        np.ones(len(data)), kernel, mode="same"
+    )
 
 
 def low_pass_filter(
     data: np.ndarray, time: np.ndarray, cutoff: float, order: int = 4
 ) -> np.ndarray:
-    """Apply a low-pass Butterworth filter using filtfilt.
+    """Apply a zero-phase low-pass Butterworth filter (filtfilt).
 
-    Args:
-        data: data to be filtered
-        time: time vector
-        cutoff: cutoff frequency of the filter in Hz
-        order: order of the filter. Default is 4.
-
-    Returns:
-        np.ndarray: filtered data
+    :param data: data to be filtered.
+    :param time: time vector in s.
+    :param cutoff: cutoff frequency in Hz.
+    :param order: order of the filter, defaults to 4.
+    :return: filtered data.
     """
 
     # Sampling frequency
@@ -96,16 +97,14 @@ def low_pass_filter(
 
 
 def savitzky_golay_filter(
-    data: np.ndarray, window_length: int = 20, polyorder: int = 3
+    data: np.ndarray, window_length: int = 21, polyorder: int = 3
 ) -> np.ndarray:
     """Apply a Savitzky-Golay filter to the data.
 
-    Args:
-        data: data to be filtered
-        window_length: length of the filter window (must be odd and greater than polyorder)
-        polyorder: order of the polynomial used to fit the samples
-    Returns:
-        np.ndarray: filtered data
+    :param data: data to be filtered.
+    :param window_length: window length (odd, greater than polyorder), defaults to 21.
+    :param polyorder: order of the fitting polynomial, defaults to 3.
+    :return: filtered data.
     """
 
     filtered_data = savgol_filter(

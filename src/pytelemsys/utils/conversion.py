@@ -12,15 +12,17 @@ def darboux_to_cartesian(
     slope_ref: float | np.ndarray,
     n: float | np.ndarray,
 ) -> tuple[float | np.ndarray, float | np.ndarray, float | np.ndarray]:
-    """Convert from Darboux coordinates to Cartesian coordinates.
+    """Convert Darboux coordinates to Cartesian coordinates.
+
+    x, y, z are ENU (z up); the road frame is Rz(theta) Ry(-slope) Rx(-bank).
 
     :param x_ref: x coordinate of the reference point.
     :param y_ref: y coordinate of the reference point.
     :param z_ref: z coordinate of the reference point.
-    :param theta_ref: angle of the reference point.
-    :param bank_ref: bank angle of the reference point.
-    :param slope_ref: slope angle of the reference point.
-    :param n: distance from the reference point.
+    :param theta_ref: heading angle of the reference point.
+    :param bank_ref: bank angle of the reference point (positive: right side higher).
+    :param slope_ref: slope angle of the reference point (positive uphill).
+    :param n: lateral distance from the reference point (positive to the left).
     :return: x, y, z coordinates in Cartesian system.
     """
 
@@ -31,65 +33,31 @@ def darboux_to_cartesian(
     s_theta = np.sin(theta_ref)
     c_theta = np.cos(theta_ref)
 
-    x = x_ref - n * s_theta * c_bank + c_theta * s_slope * s_bank
-    y = y_ref + n * c_theta * c_bank + s_theta * s_slope * s_bank
-    z = z_ref + n * c_slope * s_bank
+    x = x_ref + n * (c_theta * s_slope * s_bank - s_theta * c_bank)
+    y = y_ref + n * (s_theta * s_slope * s_bank + c_theta * c_bank)
+    z = z_ref - n * c_slope * s_bank
 
     return x, y, z
 
 
-def GPS2XYZ_ENU(
-    longitude: np.ndarray,
+def gps_to_enu(
     latitude: np.ndarray,
+    longitude: np.ndarray,
     altitude: np.ndarray,
     origin: tuple[float, float, float],
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Convert GPS coordinates to ENU (East, North, Up) coordinates.
 
-    :param longitude: longitude in degrees
-    :param latitude: latitude in degrees
-    :param altitude: altitude in meters
-    :param origin: origin coordinates (longitude, latitude, altitude) in degrees and meters
-    :return: ENU coordinates (East, North, Up)
+    :param latitude: latitude in deg.
+    :param longitude: longitude in deg.
+    :param altitude: altitude in m.
+    :param origin: origin (latitude, longitude, altitude) in deg and m.
+    :return: East, North, Up coordinates in m.
     """
 
-    # Origin coordinates
-    lon_0 = origin[0]
-    lat_0 = origin[1]
-    alt0 = origin[2]
-
-    # WGS 84 parameters
-    a = 6378137.0  # Semi-major axis
-    b = 6356752.31424518  # Semi-minor axis
-    f_inv = 298.257223563  # Inverse flattening
-    e = 0.0818191908426215  # Eccentricity
-
-    # Calculate squared eccentricity
-    e2 = e**2
-
-    # Convert to radians
-    lat = np.radians(latitude)
-    lon = np.radians(longitude)
-    lat0 = np.radians(lat_0)
-    lon0 = np.radians(lon_0)
-
-    # Radius of curvature in the prime vertical
-    N = a / np.sqrt(1 - e2 * np.sin(lat0) ** 2)
-
-    # Calculate normalized Cartesian coordinates
-    norm_x = np.cos(lat) * np.cos(lon)
-    norm_y = np.cos(lat) * np.sin(lon)
-    norm_z = np.sin(lat)
-
-    # Cartesian coordinates of point P in ECEF
-    PX = norm_x * (N + altitude)
-    PY = norm_y * (N + altitude)
-    PZ = norm_z * ((1 - e2) * N + altitude)
-
-    # Cartesian coordinates of the origin in ECEF
-    PX0 = np.cos(lon0) * np.cos(lat0) * (N + alt0)
-    PY0 = np.sin(lon0) * np.cos(lat0) * (N + alt0)
-    PZ0 = np.sin(lat0) * ((1 - e2) * N + alt0)
+    lat0, lon0 = np.radians(origin[0]), np.radians(origin[1])
+    P = _geodetic_to_ecef(np.radians(latitude), np.radians(longitude), altitude)
+    P0 = _geodetic_to_ecef(lat0, lon0, origin[2])
 
     # East, North, Up unit vectors at origin in ECEF
     uvec_E0 = np.array([-np.sin(lon0), np.cos(lon0), 0])
@@ -100,42 +68,61 @@ def GPS2XYZ_ENU(
         [np.cos(lon0) * np.cos(lat0), np.sin(lon0) * np.cos(lat0), np.sin(lat0)]
     )
 
-    # Position vectors
-    P = np.stack((PX, PY, PZ), axis=-1)
-    origin = np.array([PX0, PY0, PZ0])
-
     # Projection on tangent plane
-    DP = P - origin
-    XYZ = np.stack(
-        (np.dot(DP, uvec_E0), np.dot(DP, uvec_N0), np.dot(DP, uvec_U0)), axis=-1
+    DP = P - P0
+    return np.dot(DP, uvec_E0), np.dot(DP, uvec_N0), np.dot(DP, uvec_U0)
+
+
+def _geodetic_to_ecef(lat, lon, alt) -> np.ndarray:
+    """Convert WGS 84 geodetic coordinates to ECEF.
+
+    :param lat: latitude in rad.
+    :param lon: longitude in rad.
+    :param alt: altitude in m.
+    :return: ECEF coordinates, with shape (..., 3).
+    """
+
+    a = 6378137.0  # Semi-major axis
+    e2 = 0.0818191908426215**2  # Squared eccentricity
+
+    # Radius of curvature in the prime vertical, at each point's latitude
+    N = a / np.sqrt(1 - e2 * np.sin(lat) ** 2)
+
+    return np.stack(
+        (
+            (N + alt) * np.cos(lat) * np.cos(lon),
+            (N + alt) * np.cos(lat) * np.sin(lon),
+            ((1 - e2) * N + alt) * np.sin(lat),
+        ),
+        axis=-1,
     )
 
-    return XYZ[:, 0], XYZ[:, 1], XYZ[:, 2]
 
-
-def compute_curvilinear_coordinates(
-    track_data: Track, xTrj: np.ndarray, yTrj: np.ndarray
+def cartesian_to_curvilinear(
+    track: Track, x: np.ndarray, y: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Compute curvilinear coordinates
-    :param track_data: Track object
-    :param xTrj: X trajectory
-    :param yTrj: Y trajectory
+    """Convert Cartesian coordinates to curvilinear coordinates (s, n).
+
+    :param track: track data.
+    :param x: x coordinates of the trajectory.
+    :param y: y coordinates of the trajectory.
+    :return: curvilinear abscissa s and lateral offset n.
     """
-    # Check that xTrj and yTrj have the same length
-    if len(xTrj) != len(yTrj):
-        raise ValueError("xTrj and yTrj must have the same length")
+    # Check that x and y have the same length
+    if len(x) != len(y):
+        raise ValueError("x and y must have the same length")
 
     # Compute curvilinear coordinates
     clothoid_track = Clothoids.ClothoidList()
 
     clothoid_track.build(
-        x0=track_data.x_mid_line[0],
-        y0=track_data.y_mid_line[0],
-        theta0=track_data.dir_mid_line[0],
-        s=track_data.abscissa,
-        kappa=track_data.curvature,
+        x0=track.x_mid_line[0],
+        y0=track.y_mid_line[0],
+        theta0=track.dir_mid_line[0],
+        s=track.abscissa,
+        kappa=track.curvature,
     )
 
-    s, n = zip(*(clothoid_track.findST1(x, y) for x, y in zip(xTrj, yTrj)))
+    s, n = zip(*(clothoid_track.findST1(xi, yi) for xi, yi in zip(x, y)))
 
     return np.array(s), np.array(n)

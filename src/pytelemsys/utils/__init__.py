@@ -7,9 +7,9 @@ from pytelemsys.utils.processing import (
 from pytelemsys.utils.estimation import estimate_curvature, estimate_theta
 from pytelemsys.utils.conversion import (
     darboux_to_cartesian,
-    GPS2XYZ_ENU,
-    compute_curvilinear_coordinates,
+    gps_to_enu,
+    cartesian_to_curvilinear,
 )
-from pytelemsys.utils.utils import cursor_hover
+from pytelemsys.utils.plotting import cursor_hover
 from pytelemsys.utils.track import Track
 from pytelemsys.utils.constants import G, PI

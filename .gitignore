@@ -1,16 +1,9 @@
-# Ignore vscode files
-.vscode/
-
-# Ingore pycache
 __pycache__/
-*.egg-info
-
-# Ignore Mac system files
-**/.DS_Store
-
-# Example
-example/test_pytelem_2.py
-
-# Ignore third-party libraries
-third_party/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.vscode/
+.DS_Store
 docs/

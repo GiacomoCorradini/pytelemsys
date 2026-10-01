@@ -7,10 +7,11 @@ import pandas as pd
 from pytelemsys import TelemetryData
 from pytelemsys import TrackData
 
-from pytelemsys.utils import compute_curvilinear_coordinates
+from pytelemsys.utils import cartesian_to_curvilinear
 
 # Get root path
 root_path = os.path.abspath(os.path.join(__file__, "../"))
+
 
 # %% Conversion function
 def telem_converter(data: pd.DataFrame) -> pd.DataFrame:
@@ -102,7 +103,7 @@ ax.set_title("Trajectory")
 ax.legend()
 
 # %% Compute curvilinear coordinates
-telem_data.data["s"], telem_data.data["n"] = compute_curvilinear_coordinates(
+telem_data.data["s"], telem_data.data["n"] = cartesian_to_curvilinear(
     track_data.track,
     telem_data.data["x"],
     telem_data.data["y"],
