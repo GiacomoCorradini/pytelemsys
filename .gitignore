@@ -6,4 +6,3 @@ dist/
 .venv/
 .vscode/
 .DS_Store
-docs/
